@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HARVARD ACADEMY - 2nd Secondary Practice</title>
+    <style>
+        :root {
+            --primary: #800000;
+            --primary-light: #f8f1f1;
+            --success: #2e7d32;
+            --success-bg: #e8f5e9;
+            --error: #c62828;
+            --error-bg: #ffebee;
+            --text: #2c3e50;
+            --bg: #f4f6f9;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            padding-top: 90px; /* المساحة المحجوزة لشريط النتيجة العلوي */
+            line-height: 1.6;
+        }
+
+        /* شريط الإحصائيات العلوي المثبت */
+        .score-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            z-index: 1000;
+            padding: 10px 20px;
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .score-container {
+            max-width: 850px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .score-box {
+            font-size: 14px;
+            font-weight: bold;
+            padding: 6px 14px;
+            border-radius: 20px;
+            background: var(--bg);
+        }
+
+        .score-box.correct-box { color: var(--success); background: var(--success-bg); }
+        .score-box.wrong-box { color: var(--error); background: var(--error-bg); }
+        .score-box.percent-box { color: var(--primary); background: var(--primary-light); }
+
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: var(--primary);
+            margin: 0 0 5px 0;
+            font-size: 26px;
+            letter-spacing: 1px;
+        }
+
+        .header h2 {
+            color: #555;
+            margin: 0 0 10px 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .header .meta {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            color: #666;
+            font-size: 14px;
+            background: var(--primary-light);
+            padding: 10px 15px;
+            border-radius: 6px;
+        }
+
+        .question-card {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .question-text {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #1a1a1a;
+        }
+
+        .translation-text {
+            font-size: 14px;
+            color: #666;
+            direction: rtl;
+            text-align: right;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .option-btn {
+            background: #f8f9fa;
+            border: 1.5px solid #dcdfe6;
+            padding: 12px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 15px;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: #eef2f7;
+            border-color: var(--primary);
+        }
+
+        .option-btn.correct {
+            background-color: var(--success-bg) !important;
+            border-color: var(--success) !important;
+            color: var(--success) !important;
+            font-weight: bold;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--error-bg) !important;
+            border-color: var(--error) !important;
+            color: var(--error) !important;
+            font-weight: bold;
+        }
+
+        .feedback {
+            display: none;
+            margin-top: 15px;
+            padding: 12px 15px;
+            border-radius: 6px;
+            font-weight: 500;
+            direction: rtl;
+            text-align: right;
+            font-size: 14px;
+        }
+
+        .feedback.correct-fb {
+            background-color: var(--success-bg);
+            color: var(--success);
+            border-right: 4px solid var(--success);
+        }
+
+        .feedback.wrong-fb {
+            background-color: var(--error-bg);
+            color: var(--error);
+            border-right: 4px solid var(--error);
+        }
+
+        .page-tag {
+            text-align: center;
+            font-size: 13px;
+            font-weight: bold;
+            color: #777;
+            margin: 30px 0 15px 0;
+            border-top: 2px dashed #ccc;
+            padding-top: 15px;
+            direction: ltr;
+        }
+    </style>
+</head>
+<body>
+
+<!-- شريط النتيجة المثبت أعلى الشاشة -->
+<div class="score-bar">
+    <div class="score-container">
+        <div class="score-box correct-box">الإجابات الصحيحة: <span id="correct-count">0</span></div>
+        <div class="score-box wrong-box">الإجابات الخاطئة: <span id="wrong-count">0</span></div>
+        <div class="score-box">المتبقي: <span id="remaining-count">60</span></div>
+        <div class="score-box percent-box">النسبة المئوية: <span id="score-percentage">0%</span></div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="header">
+        <h1>HARVARD ACADEMY</h1>
+        <h2>ENGLISH LANGUAGE</h2>
+        <p style="margin: 5px 0 15px 0; font-weight: 500;">2nd Secondary Grade - Vocabulary & Grammar Comprehensive Practice</p>
+        <div class="meta">
+            <span>60 Questions</span>
+            <span>Mr. Youssef Elshazly</span>
+        </div>
+    </div>
+
+    <div id="quiz-container"></div>
+
+</div>
+
+<script>
+const quizData = [
+    { q: "1. Reading different sources helps students _____ evidence.", trans: "قراءة المصادر المختلفة تساعد الطلاب على ..... الأدلة.", options: ["evaluate", "perform", "make", "take"], correctIndex: 0, fb: "تأتي الكلمة evaluate (تقييم) مع الأدلة evidence." },
+    { q: "2. A regular sleep schedule helps _____ digital well-being.", trans: "جدول النوم المنتظم يساعد على ..... الرفاهية الرقمية.", options: ["maintain", "catch", "spend", "collect"], correctIndex: 0, fb: "الفعل maintain يعني الحفاظ على (الرفاهية الرقمية)." },
+    { q: "3. Schools should _____ awareness of digital well-being.", trans: "ينبغي على المدارس أن ..... الوعي بالرفاهية الرقمية.", options: ["raise", "build", "increase", "grow"], correctIndex: 0, fb: "التعبير المصطلحي الصحيح هو raise awareness (زيادة الوعي)." },
+    { q: "4. Good habits can _____ self-confidence.", trans: "العادات الجيدة يمكن أن ..... الثقة بالنفس.", options: ["build", "break", "drop", "reduce"], correctIndex: 0, fb: "نستخدم الفعل build مع self-confidence ليعني (بناء الثقة بالنفس)." },
+    { q: "5. Notifications can make it difficult to _____ stress.", trans: "الإشعارات قد تجعل من الصعب ..... الضغط العصبي.", options: ["manage", "shape", "measure", "compare"], correctIndex: 0, fb: "الفعل manage مع stress يعني (السيطرة على/إدارة الضغط العصبي)." },
+    { q: "6. Family and culture can _____ identity.", trans: "الأسرة والثقافة يمكنهما ..... الهوية.", options: ["shape", "lose", "make", "drop"], correctIndex: 0, fb: "الفعل shape يعني (تشكيل/صياغة) الهوية." },
+    { q: "7. Teenagers can be strongly affected _____ online comments.", trans: "يمكن أن يتأثر المراهقون بشدة ..... التعليقات عبر الإنترنت.", options: ["by", "to", "at", "for"], correctIndex: 0, fb: "صيغة المبني للمجهول: affected by (يتأثر بـ)." },
+    { q: "8. The new routine had a positive impact _____ her sleep.", trans: "كان للروتين الجديد تأثير إيجابي ..... نومها.", options: ["on", "from", "with", "for"], correctIndex: 0, fb: "الاسم impact يأخذ حرف الجر on (تأثير على)." },
+    { q: "9. He often compares himself _____ famous athletes.", trans: "غالباً ما يقارن نفسه ..... الرياضيين المشهورين.", options: ["to", "with", "at", "by"], correctIndex: 0, fb: "الفعل compare يأخذ حرف الجر to أو with عند المقارنة." },
+    { q: "10. Physical activity is linked _____ improved mood.", trans: "النشاط البدني مرتبط ..... تحسن المزاج.", options: ["to", "for", "with", "in"], correctIndex: 0, fb: "الصفة/الماضي linked يأخذ حرف الجر to (مرتبط بـ)." },
+    { q: "11. Parents are responsible _____ helping younger children use media safely.", trans: "الوالدان مسؤولان ..... مساعدة الأطفال الصغار في استخدام وسائل الإعلام بأمان.", options: ["for", "of", "in", "at"], correctIndex: 0, fb: "الصفة responsible تأخذ حرف الجر for (مسؤول عن)." },
+    { q: "12. Students should focus _____ evidence rather than popularity.", trans: "يجب على الطلاب التركيز ..... الأدلة بدلاً من الشهرة.", options: ["on", "by", "of", "to"], correctIndex: 0, fb: "الفعل focus يأخذ حرف الجر on (يركز على)." },
+    { q: "13. Some teenagers may be at risk _____ poor sleep when they use phones late at night.", trans: "قد يكون بعض المراهقين عرضة لخطر ..... سوء النوم عند استخدام الهواتف في وقت متأخر من الليل.", options: ["of", "from", "to", "with"], correctIndex: 0, fb: "التعبير at risk of يعني (في خطر تعرض لـ)." },
+    { q: "14. The article offers a balanced _____ of the problem.", trans: "يقدم المقال ..... متوازناً للمشكلة.", options: ["evaluation", "evaluate", "evaluative", "evaluating"], correctIndex: 0, fb: "بعد الصفة balanced نحتاج إلى اسم noun وهو evaluation (تقييم)." },
+    { q: "15. The speaker was very _____ and supported every point with evidence.", trans: "كان المتحدث ..... للغاية ودعم كل نقطة بالأدلة.", options: ["persuasive", "persuade", "persuasion", "persuasively"], correctIndex: 0, fb: "بعد verb to be (was very) نحتاج إلى صفة adjective وهي persuasive (مقنع)." },
+    
+    { q: "16. We need _____ goals that can be tracked over time.", trans: "نحتاج إلى أهداف ..... يمكن تتبعها بمرور الوقت.", options: ["measurable", "measure", "measurement", "measurably"], correctIndex: 0, fb: "نحتاج إلى صفة لتصف الأهداف goals، والصفة هي measurable (قابلة للقياس)." },
+    { q: "17. Her _____ grew after she completed the presentation successfully.", trans: "زدادت ..... بعد أن أتمت العرض التقديمي بنجاح.", options: ["confidence", "confident", "confidently", "confide"], correctIndex: 0, fb: "بعد صفة الملكية Her نحتاج إلى اسم noun وهو confidence (ثقة)." },
+    { q: "18. Regular exercise can improve emotional _____.", trans: "الممارسة المنتظمة للرياضة يمكن أن تحسن ..... العاطفي/النفسي.", options: ["well-being", "well", "body", "healthily"], correctIndex: 0, fb: "التعبير الصحيح هو emotional well-being (الرفاهية/السلامة النفسية والإنفعالية)." },
+    { q: "19. The school invited a _____ to discuss healthy meals.", trans: "دعت المدرسة ..... لمناقشة الوجبات الصحية.", options: ["nutritionist", "nutrition", "nutritional", "nutritious"], correctIndex: 0, fb: "نحتاج اسم شخص بعد أداة التنكير a، وهو nutritionist (خبير تغذية)." },
+    { q: "20. Mindful breathing can increase _____.", trans: "التنفس التأملي يمكن أن يزيد من .....", options: ["mindfulness", "mindful", "mindfully", "mind"], correctIndex: 0, fb: "الفعل increase يحتاج إلى مفعول به (اسم) وهو mindfulness (اليقظة الذهنية)." },
+    { q: "21. The report clearly shows the _____ of family habits on sleep.", trans: "يظهر التقرير بوضوح ..... العادات الأسرية على النوم.", options: ["influence", "influential", "influentially", "influenced"], correctIndex: 0, fb: "بعد أداة التعريف the نحتاج إلى اسم وهو influence (تأثير)." },
+    { q: "22. The two lifestyles were _____ studied.", trans: "تمت دراسة نمطي الحياة .....", options: ["comparatively", "comparative", "compare", "comparison"], correctIndex: 0, fb: "نحتاج إلى ظرف adverb ليصف الفعل studied، وهو comparatively (على نحو مقارَن)." },
+    { q: "23. Lack of sleep can _____ your concentration.", trans: "نقص النوم يمكن أن ..... تركيزك.", options: ["affect", "effect", "affection", "effective"], correctIndex: 0, fb: "بعد الفعل الناقص can نحتاج فعل مجرد وهو affect (يؤثر على)." },
+    { q: "24. One possible _____ of constant notifications is anxiety.", trans: "أحد ..... المحتملة للإشعارات المستمرة هو القلق.", options: ["effect", "affect", "effective", "affected"], correctIndex: 0, fb: "بعد الصفة possible نحتاج اسم وهو effect (تأثير/نتيجة)." },
+    { q: "25. My teacher gave me useful _____ about managing my time.", trans: "أعطاني معلمي ..... مفيدة حول إدارة وقتي.", options: ["advice", "advise", "advisor", "advising"], correctIndex: 0, fb: "بعد الصفة useful نحتاج اسم غير معدود وهو advice (نصيحة)." },
+    { q: "26. Doctors _____ teenagers to avoid high-caffeine drinks late at night.", trans: "الأطباء ..... المراهقين بتجنب المشروبات الغنية بالكافيين ليلًا.", options: ["advise", "advice", "advisable", "advisor"], correctIndex: 0, fb: "نحتاج فعل للفاعل Doctors وهو advise (ينصحون)." },
+    { q: "27. A _____ choice is realistic and practical.", trans: "الخيار ..... يكون واقعياً وعملياً.", options: ["sensible", "sensitive", "sensational", "sensory"], correctIndex: 0, fb: "الصفة sensible تعني (حكيم/عقلاني)، بينما sensitive تعني (حساس)." },
+    { q: "28. Some people are very _____ to negative comments online.", options: ["sensitive", "sensible", "sensibly", "sense"], correctIndex: 0, fb: "التعبير sensitive to يعني (حساس تجاه/يتأثر بسرعة بـ)." },
+    { q: "29. Please _____ that the source is reliable before sharing it.", trans: "يرجى ..... أن المصدر موثوق قبل مشاركته.", options: ["ensure", "assure", "insure", "assurance"], correctIndex: 0, fb: "الفعل ensure يعني (تأكد/احرص على أن)." },
+    { q: "30. The coach tried to _____ us that one bad result did not define us.", trans: "حاول المدرب أن ..... بأن نتيجة سيئة واحدة لا تحدد مستوانا.", options: ["assure", "ensure", "insure", "secure"], correctIndex: 0, fb: "الفعل assure يأخذ مفعول به شخص (assure us) ليعني (يطمئننا)." },
+
+    { q: "31. A _____ diet supports physical well-being.", trans: "النظام الغذائي ..... يدعم الصحة البدنية.", options: ["healthy", "healthful", "healthily", "health"], correctIndex: 0, fb: "الصفة الشائعة مع diet هي healthy (صحي)." },
+    { q: "32. Fresh fruit is a _____ snack.", trans: "الفاكهة الطازجة هي وجبة خفيفة .....", options: ["healthful", "healthy", "health", "healthily"], correctIndex: 0, fb: "الصفة healthful تعني مفيد للصحة وتُستخدم غالبًا مع الأطعمة." },
+    { q: "33. _____ regularly, teenagers can improve both fitness and mood.", trans: "من خلال ..... بانتظام، يمكن للمراهقين تحسين اللياقة والمزاج.", options: ["Exercising", "Exercised", "Exercise", "To exercise"], correctIndex: 0, fb: "بداية الجملة بأسلوب اسم الفاعل Gerund (Exercising) كفاعل للتعبير عن ممارسة الرياضة." },
+    { q: "34. Students _____ phones late at night may sleep less.", trans: "الطلاب الذين ..... الهواتف ليلًا قد ينامون أقل.", options: ["using", "used", "use", "uses"], correctIndex: 0, fb: "عبارة موصول مختصرة اصلها (who use) فتصبح باستخدام اسم الفاعل (using)." },
+    { q: "35. _____ by unrealistic images, some users become dissatisfied.", trans: "بسبب ..... بالصور غير الواقعية، يصاب بعض المستخدمين بالإحباط.", options: ["Influenced", "Influencing", "Influence", "To influence"], correctIndex: 0, fb: "عبارة مبني للمجهول مختصرة تبدأ بالتصريف الثالث (Influenced) أي (بسبب تأثرهم بـ)." },
+    { q: "36. The article _____ we read discusses digital well-being.", trans: "المقال الذي ..... قرأناه يناقش الرفاهية الرقمية.", options: ["that", "who", "where", "whose"], correctIndex: 0, fb: "ضمير الموصول للإشارة لغير العاقل (The article) هو that." },
+    { q: "37. Teenagers _____ compare themselves constantly may feel pressure.", trans: "المراهقون الذين ..... يقارنون أنفسهم باستمرار قد يشعرون بالضغط.", options: ["who", "which", "where", "whose"], correctIndex: 0, fb: "ضمير الموصول للإشارة للفاعل العاقل (Teenagers) هو who." },
+    { q: "38. Mindfulness, _____ can reduce stress, is easy to practise.", trans: "اليقظة الذهنية، ..... يمكن أن تقلل الضغط، سهلة الممارسة.", options: ["which", "that", "who", "whose"], correctIndex: 0, fb: "في الجمل الموصولة غير المحددة (بين جملتين معترضتين) نستخدم which وليس that لغير العاقل." },
+    { q: "39. A bedroom is a place _____ students should avoid bright screens before sleep.", trans: "غرفة النوم هي مكان ..... يجب على الطلاب تجنب الشاشات الساطعة فيه قبل النوم.", options: ["where", "who", "which", "whose"], correctIndex: 0, fb: "نستخدم where للإشارة إلى المكان (a place)." },
+    { q: "40. The _____ sleep we get, the better we feel.", trans: "كلما حصلنا على نوم ..... كلما شعرنا بتحسن.", options: ["more sleep", "most sleep", "sleep", "sleeping"], correctIndex: 0, fb: "قاعدة المقارنة المزدوجة: The more ..., the better ..." },
+    { q: "41. If he reduces notifications, he _____ focus better.", trans: "إذا قلل الإشعارات، فسوف ..... على التركيز بشكل أفضل.", options: ["will get", "would get", "got", "getting"], correctIndex: 0, fb: "الحالة الشرطية الأولى (If + مضارع بسيط -> will + المصدر)." },
+    { q: "42. Many studies indicate that habit formation is more complex than _____.", trans: "تشير العديد من الدراسات إلى أن تكوين العادات أكثر تعقيداً مما هو .....", options: ["expected", "expecting", "expect", "to expect"], correctIndex: 0, fb: "التعبير المصطلحي الصحيح: than expected (مما كان متوقعًا)." },
+    { q: "43. If I _____ a week without social media, I would have more time.", trans: "لو ..... أسبوعاً بدون وسائل التواصل، لكان لدي وقت أكبر.", options: ["had", "have", "had had", "having"], correctIndex: 0, fb: "الحالة الشرطية الثانية (If + ماضي بسيط -> would + المصدر)، لذا نختار had." },
+    { q: "44. Some posts _____ create unrealistic expectations.", trans: "بعض المنشورات ..... تخلق توقعات غير واقعية.", options: ["may", "must", "should", "cannot"], correctIndex: 0, fb: "للتعبير عن الاحتمالية نستخدم الفعل الناقص may (قد تُنشئ)." },
+    { q: "45. The evidence _____ that regular activity improves well-being.", trans: "الأدلة ..... إلى أن النشاط المنتظم يحسن الرفاهية.", options: ["suggests", "force", "proves absolutely", "destroys"], correctIndex: 0, fb: "في الكتابة الأكاديمية نستخدم الفعل suggests (يشير إلى/يقترح)." },
+
+    { q: "46. People _____ a balanced diet often feel more energetic.", trans: "الأشخاص الذين ..... نظاماً غذائياً متوازناً يشعرون بطاقة أكبر.", options: ["following", "followed", "follows", "follow"], correctIndex: 0, fb: "عبارة موصول مختصرة للتعبير عن الفاعل (People who follow -> People following)." },
+    { q: "47. _____ by a nutritionist, the plan became more realistic.", trans: "بعد أن تمت ..... بواسطة خبير تغذية، أصبحت الخطة أكثر واقعية.", options: ["Reviewed", "Reviewing", "Reviews", "Review"], correctIndex: 0, fb: "عبارة مبني للمجهول مختصرة (Reviewed) أي (بعد أن تمت مراجعتها)." },
+    { q: "48. The program _____ was introduced last week was effective.", trans: "البرنامج الذي ..... قُدِّم الأسبوع الماضي كان فعالاً.", options: ["which", "who", "where", "whose"], correctIndex: 0, fb: "ضمير الموصول لغير العاقل (The program) هو which." },
+    { q: "49. Students _____ sleep enough report better mood.", trans: "الطلاب الذين ..... ينامون بشكل كافٍ يظهرون مزاجاً أفضل.", options: ["who", "which", "where", "whose"], correctIndex: 0, fb: "ضمير الموصول للفاعل العاقل (Students) هو who." },
+    { q: "50. If they spent less time on screens, they _____ better.", trans: "لو قضوا وقتاً أقل أمام الشاشات، لـ ..... بشكل أفضل.", options: ["would sleep", "will sleep", "slept", "sleep"], correctIndex: 0, fb: "حالة شرطية ثانية (spent فعل ماضي) -> نختار would + المصدر (would sleep)." },
+    { q: "51. If schools created more activity breaks, students _____ more focused.", trans: "لو أنشأت المدارس فترات راحة للنشاط، لـ ..... الطلاب بتركيز أكبر.", options: ["might feel", "will feel", "felt", "feel"], correctIndex: 0, fb: "حالة شرطية ثانية (created ماضي) -> نستخدم might/would + المصدر." },
+    { q: "52. _____ the source carefully, the student noticed that the claim lacked evidence.", trans: "عند ..... المصدر بعناية، لاحظ الطالب أن الادعاء يفتقر للأدلة.", options: ["Evaluating", "Evaluated", "Evaluate", "To evaluate"], correctIndex: 0, fb: "اسم فاعل (Evaluating) يُستخدم للتعبير عن حدث تم في نفس وقت الحدث الآخر بواسطة نفس الفاعل." },
+    { q: "53. _____ by a dramatic headline, readers may share a story too quickly.", trans: "بسبب ..... بعنون مثير، قد يشارك القراء القصة بسرعة كبيرة.", options: ["Misled", "Misleading", "Mislead", "To mislead"], correctIndex: 0, fb: "صيغة مبني للمجهول مختصرة تبدأ بالتصريف الثالث للفعل Mislead وهو (Misled)." },
+    { q: "54. The healthy habits _____ in the article are practical for most students.", trans: "العادات الصحية الموصى ..... في المقال عملية لمعظم الطلاب.", options: ["recommended", "recommending", "recommend", "recommends"], correctIndex: 0, fb: "جملة موصول مختصرة للمبني للمجهول (habits which were recommended -> habits recommended)." },
+    { q: "55. The students, _____ opinions differed, still listened respectfully to one another.", trans: "الطلاب الذين ..... اختلفت آراؤهم، استمعوا باحترام لبعضهم البعض.", options: ["whose", "who", "which", "where"], correctIndex: 0, fb: "ضمير الموصول للتعبير عن الملكية (آراؤهم) هو whose." },
+    { q: "56. The cafe _____ we met had a quiet study area.", trans: "المقهى الذي ..... التقينا فيه كان به منطقة دراسة هادئة.", options: ["where", "whose", "which", "who"], correctIndex: 0, fb: "ضمير المكان الذي يشير إلى الكافيه كمنطقة حدث فيها اللقاء هو where." },
+    { q: "57. _____ who copy online claims without checking risk spreading misinformation.", trans: "..... الذين ينقلون الادعاءات بدون تحقق يخاطرون بنشر معلومات خاطئة.", options: ["People", "Person", "Someone", "Anyone"], correctIndex: 0, fb: "الكلمة المناسبة للجمع قبل ضمير الموصول who والفعل الجمع copy هي People." },
+    { q: "58. If I were writing the report, I _____ include more than one perspective.", trans: "لو كنت أكتب التقرير، لـ ..... تضمين أكثر من وجهة نظر.", options: ["would", "will", "can", "must"], correctIndex: 0, fb: "افتراض غير واقعي في الحالة الشرطية الثانية (If I were...) ياخذ would." },
+    { q: "59. The report, _____ was based on interviews, included several perspectives.", trans: "التقرير، الذي ..... استند إلى مقابلات، تضمن عدة وجهات نظر.", options: ["which", "that", "who", "whose"], correctIndex: 0, fb: "في الجمل الاعتراضية الموصولة لغير العاقل نستخدم which ويمتنع استخدام that." },
+    { q: "60. People _____ healthier routines often report better focus.", trans: "الأشخاص الذين ..... روتيناً أثر صحة يظهرون تركيزاً أفضل.", options: ["adopting", "adopted", "adopts", "adopt"], correctIndex: 0, fb: "عبارة موصول مختصرة للمعلوم (People who adopt -> People adopting)." }
+];
+
+let correctTotal = 0;
+let wrongTotal = 0;
+let remainingTotal = quizData.length;
+
+function updateDashboard() {
+    document.getElementById('correct-count').innerText = correctTotal;
+    document.getElementById('wrong-count').innerText = wrongTotal;
+    document.getElementById('remaining-count').innerText = remainingTotal;
+    
+    let totalAnswered = correctTotal + wrongTotal;
+    let percentage = totalAnswered === 0 ? 0 : Math.round((correctTotal / totalAnswered) * 100);
+    document.getElementById('score-percentage').innerText = percentage + "%";
+}
+
+const container = document.getElementById('quiz-container');
+
+quizData.forEach((item, index) => {
+    let pageHeader = '';
+    if (index === 0) pageHeader = '<div class="page-tag">Page 1 of 4</div>';
+    else if (index === 15) pageHeader = '<div class="page-tag">Page 2 of 4</div>';
+    else if (index === 30) pageHeader = '<div class="page-tag">Page 3 of 4</div>';
+    else if (index === 45) pageHeader = '<div class="page-tag">Page 4 of 4</div>';
+
+    if (pageHeader) {
+        const pDiv = document.createElement('div');
+        pDiv.innerHTML = pageHeader;
+        container.appendChild(pDiv);
+    }
+
+    const card = document.createElement('div');
+    card.className = 'question-card';
+
+    // نص السؤال بالإنجليزية
+    const qText = document.createElement('div');
+    qText.className = 'question-text';
+    qText.innerText = item.q;
+    card.appendChild(qText);
+
+    // ترجمة الجملة بالعربية
+    const tText = document.createElement('div');
+    tText.className = 'translation-text';
+    tText.innerText = item.trans;
+    card.appendChild(tText);
+
+    const grid = document.createElement('div');
+    grid.className = 'options-grid';
+
+    const fb = document.createElement('div');
+    fb.className = 'feedback';
+
+    // بعثرة الاختيارات بطريقة عشوائية
+    let rawOptions = item.options.map((opt, i) => ({ text: opt, isCorrect: i === item.correctIndex }));
+    
+    // خوارزمية الترتيب العشوائي (Fisher-Yates Shuffle)
+    for (let i = rawOptions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [rawOptions[i], rawOptions[j]] = [rawOptions[j], rawOptions[i]];
+    }
+
+    const prefixes = ["a. ", "b. ", "c. ", "d. "];
+
+    rawOptions.forEach((optObj, optIndex) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerText = prefixes[optIndex] + optObj.text;
+
+        btn.onclick = () => {
+            const buttons = grid.querySelectorAll('.option-btn');
+            buttons.forEach(b => b.disabled = true);
+
+            remainingTotal--;
+
+            if (optObj.isCorrect) {
+                btn.classList.add('correct');
+                fb.className = 'feedback correct-fb';
+                fb.innerHTML = '<strong>إجابة صحيحة!</strong> ' + item.fb;
+                correctTotal++;
+            } else {
+                btn.classList.add('wrong');
+                // تظليل الإجابة الصحيحة
+                rawOptions.forEach((o, idx) => {
+                    if (o.isCorrect) buttons[idx].classList.add('correct');
+                });
+                fb.className = 'feedback wrong-fb';
+                fb.innerHTML = '<strong>إجابة خاطئة!</strong> ' + item.fb;
+                wrongTotal++;
+            }
+            fb.style.display = 'block';
+            updateDashboard();
+        };
+        grid.appendChild(btn);
+    });
+
+    card.appendChild(grid);
+    card.appendChild(fb);
+    container.appendChild(card);
+});
+
+// التحديث الأولي للشاشة
+updateDashboard();
+</script>
+
+</body>
+</html>
